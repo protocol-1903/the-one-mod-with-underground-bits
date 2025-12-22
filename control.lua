@@ -7,7 +7,11 @@ local event_filter = {{filter = "type", type = "pipe"}, {filter = "type", type =
 script.on_event(defines.events.on_player_controller_changed, function (event)
   local player = game.get_player(event.player_index)
 
-  if not storage.tomwub[player.index] then return end
+  -- ИСПРАВЛЕНИЕ: Инициализация storage для игрока если не существует
+  if not storage.tomwub[player.index] then 
+    storage.tomwub[player.index] = {item = nil, count = 0, quality = nil}
+    return 
+  end
 
   local item = player.cursor_ghost and player.cursor_ghost.name.name or
     player.cursor_stack and player.cursor_stack.valid_for_read and player.cursor_stack.name or nil
@@ -42,6 +46,11 @@ script.on_event(defines.events.on_player_pipette, function (event)
   -- end if not one of ours
   if prototype.name:sub(1,7) ~= "tomwub-" or not prototypes.item["tomwub-" .. name] then return end
 
+  -- ИСПРАВЛЕНИЕ: Инициализация storage для игрока если не существует
+  if not storage.tomwub[player.index] then
+    storage.tomwub[player.index] = {item = nil, count = 0, quality = nil}
+  end
+
   if not player.cursor_ghost then
     -- should fill normally with stack change script
     storage.tomwub[player.index] = {
@@ -61,9 +70,17 @@ end)
 script.on_event(defines.events.on_player_cursor_stack_changed, function (event)
 
   local player = game.get_player(event.player_index)
+  
+  -- ИСПРАВЛЕНИЕ: Проверка валидности игрока
+  if not player or not player.valid then return end
 
   -- if in remote view do nothing
   if player.controller_type == defines.controllers.remote then return end
+
+  -- ИСПРАВЛЕНИЕ: Инициализация storage для игрока если не существует
+  if not storage.tomwub[event.player_index] then
+    storage.tomwub[event.player_index] = {item = nil, count = 0, quality = nil}
+  end
 
   local item = player.cursor_ghost and player.cursor_ghost.name.name or
     player.cursor_stack and player.cursor_stack.valid_for_read and player.cursor_stack.name or nil
@@ -71,6 +88,7 @@ script.on_event(defines.events.on_player_cursor_stack_changed, function (event)
   local quality = player.cursor_ghost and player.cursor_ghost.quality or 
     player.cursor_stack and player.cursor_stack.valid_for_read and player.cursor_stack.quality or nil
 
+  -- ИСПРАВЛЕНИЕ: Безопасное получение старых значений с проверкой на nil
   local old_item = storage.tomwub[event.player_index].item
   local old_count = storage.tomwub[event.player_index].count
   local old_quality = storage.tomwub[event.player_index].quality
@@ -102,11 +120,13 @@ script.on_event(defines.events.on_player_cursor_stack_changed, function (event)
     }
 
     -- set hand location to preserve place for player to put items
-    player.hand_location = {
-      inventory = player.get_main_inventory().index,
-      slot = stack
-    }
-  elseif old_count > 0 and old_item:sub(1,7) == "tomwub-" and item ~= old_item then
+    if stack then
+      player.hand_location = {
+        inventory = player.get_main_inventory().index,
+        slot = stack
+      }
+    end
+  elseif old_count and old_count > 0 and old_item and old_item:sub(1,7) == "tomwub-" and item ~= old_item then
     -- was previously holding item, just put it away so put pipes back into inventory
 
     -- get amount added to inventory
@@ -146,7 +166,7 @@ script.on_event(defines.events.on_player_cursor_stack_changed, function (event)
 
       return -- return early, we don't want to run other code
     end
-  elseif not player.is_cursor_empty() and old_count < -3 and item:sub(1,7) == "tomwub-" then
+  elseif not player.is_cursor_empty() and old_count and old_count < -3 and item and item:sub(1,7) == "tomwub-" then
 
     local amount_removed = player.controller_type == defines.controllers.editor and -3 - old_count or player.get_main_inventory().remove{
       name = item:sub(8, -1),
@@ -158,9 +178,9 @@ script.on_event(defines.events.on_player_cursor_stack_changed, function (event)
     local _, stack = player.get_main_inventory().find_empty_stack()
 
     if not stack then
-      amount_removed = player.get_main_inventory().remove{
+      amount_removed = amount_removed + player.get_main_inventory().remove{
         name = item:sub(8, -1),
-        count = player.cursor_ghost.stack_size - amount_removed,
+        count = player.cursor_ghost.name.stack_size - amount_removed,
         quality = quality
       }
 
@@ -188,7 +208,7 @@ script.on_event(defines.events.on_player_cursor_stack_changed, function (event)
   -- set the previous item and count
   storage.tomwub[event.player_index] = {
     item = item,
-    count = player.cursor_stack and player.cursor_stack.count or 0,
+    count = player.cursor_stack and player.cursor_stack.valid_for_read and player.cursor_stack.count or 0,
     quality = quality
   }
 end)
@@ -255,8 +275,10 @@ script.on_event("tomwub-swap-layer", function(event)
   -- also man .valid_for_read is so powerful
   -- it's hopefully a valid item, so do a little switcheroo
 
-  -- if the player somehow broke this... give up
-  if storage.tomwub[event.player_index] == nil then goto continue end
+  -- ИСПРАВЛЕНИЕ: Инициализация storage для игрока если не существует
+  if not storage.tomwub[event.player_index] then
+    storage.tomwub[event.player_index] = {item = nil, count = 0, quality = nil}
+  end
 
   -- holding underground, switch to pipe
   if item:sub(1,7) == "tomwub-" then
@@ -408,7 +430,7 @@ function handle(event)
       end
     end
   
-    if event.player_index then
+    if event.player_index and storage.tomwub[event.player_index] then
       local player = game.get_player(event.player_index)
 
       -- if player just placed last item, then signal to script to update hand again
