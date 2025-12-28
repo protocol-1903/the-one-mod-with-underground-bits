@@ -1,8 +1,11 @@
 ---------------------------------------------------------------------------------------------------
-Version: 1.0.8
+Version: 1.0.9
 Date: 2025-12-28
   Bugfixes:
-    - Fixed a crash when doing basically anything in the past 3 versions.
+    - Fixed a crash when doing basically anything in the past 4 versions.
+---------------------------------------------------------------------------------------------------
+Version: 1.0.8
+Date: 2025-12-27
   Locale:
     - Added RU locale courtesy of @Eldrinn-Elantey on github
 ---------------------------------------------------------------------------------------------------
