@@ -2,7 +2,7 @@ local xutil = require "util"
 
 local tags = {}
 
-underground_total_resistances = {}
+local underground_total_resistances = {}
 
 for prototype in pairs(data.raw["damage-type"]) do
   underground_total_resistances[#underground_total_resistances+1] = {
@@ -130,7 +130,7 @@ for p, pipe in pairs(data.raw.pipe) do
         }}
       end
 
-      tomwub_pipe = data.raw.pipe["tomwub-" .. p]
+      local tomwub_pipe = data.raw.pipe["tomwub-" .. p]
       for _, pipe_connection in pairs(tomwub_pipe.fluid_box.pipe_connections) do
         pipe_connection.connection_category = tag
       end
@@ -186,6 +186,7 @@ data:extend{
     type = "custom-input",
     name = "tomwub-swap-layer",
     key_sequence = "G",
+    linked_game_control = "toggle-rail-layer",
     action = "lua"
   }, -- only create a generic collision mask when NPT is not installed
   not mods["no-pipe-touching"] and {

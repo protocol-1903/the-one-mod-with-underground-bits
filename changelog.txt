@@ -4,6 +4,7 @@ Date: 2025-12-29
   Changes:
     - Added logging when an entity is explicitly ignored
     - Added ability to skip underground pipes entirely (prototype.ignore_by_tomwub)
+    - Directly linked the swap layer keybind to the rail layer keybind
   Bugfixes:
     - Fixed that underground heat pipes would not function. Resolves https://github.com/protocol-1903/actual-underground-pipes/issues/19
 ---------------------------------------------------------------------------------------------------
