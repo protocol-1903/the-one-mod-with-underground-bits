@@ -1,4 +1,9 @@
 ---------------------------------------------------------------------------------------------------
+Version: 1.0.12
+Date: 2026-01-03
+  Bugfixes:
+    - Fixed another crash when an item has icons instead of a single filepath, why i didnt do this earlier escapes me
+---------------------------------------------------------------------------------------------------
 Version: 1.0.11
 Date: 2026-01-01
   Bugfixes:

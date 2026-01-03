@@ -76,8 +76,12 @@ for p, pipe in pairs(data.raw.pipe) do
         {
           type = "item",
           name = "tomwub-" .. p,
-          icon = pipe.icon or data.raw.pipe.pipe.icon,
-          icon_size = pipe.icon_size or data.raw.pipe.pipe.icon_size,
+          icon = pipe.icon,
+          icon_size = pipe.icon_size,
+          icons = pipe.icons or {{
+            icon = pipe.icon or data.raw.pipe.pipe.icon,
+            icon_size = pipe.icon_size or data.raw.pipe.pipe.icon_size,
+          }},
           place_result = "tomwub-" .. p,
           flags = {"only-in-cursor"},
           stack_size = data.raw.item[p].stack_size
@@ -85,9 +89,12 @@ for p, pipe in pairs(data.raw.pipe) do
         {
           type = "pipe",
           name = "tomwub-" .. p,
-          icon = pipe.icon or not pipe.icons and data.raw.pipe.pipe.icon or nil,
-          icon_size = pipe.icon_size or not pipe.icons and data.raw.pipe.pipe.icon_size or nil,
-          icons = pipe.icons or not pipe.icon and data.raw.pipe.pipe.icons or nil,
+          icon = pipe.icon,
+          icon_size = pipe.icon_size,
+          icons = pipe.icons or {{
+            icon = pipe.icon or data.raw.pipe.pipe.icon,
+            icon_size = pipe.icon_size or data.raw.pipe.pipe.icon_size,
+          }},
           localised_name = {"entity-name.tomwub-underground", pipe.localised_name or {"entity-name." .. pipe.name}},
           fluid_box = table.deepcopy(pipe.fluid_box),
           pictures = table.deepcopy(pipe.pictures),
