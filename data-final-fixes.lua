@@ -182,8 +182,6 @@ for p, pipe in pairs(data.raw.pipe) do
 end
 
 require("__the-one-mod-with-underground-bits__/compatibility/prototypes/FluidMustFlow")
-require("__the-one-mod-with-underground-bits__/compatibility/prototypes/elevated-pipes")
-require("__the-one-mod-with-underground-bits__/compatibility/prototypes/elevated-space-pipes")
 require("__the-one-mod-with-underground-bits__/compatibility/prototypes/FlowControl")
 require("__the-one-mod-with-underground-bits__/compatibility/prototypes/dredgeworks")
 require("__the-one-mod-with-underground-bits__/compatibility/prototypes/underground-heat-pipe")
