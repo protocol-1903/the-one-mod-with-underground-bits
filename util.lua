@@ -1,4 +1,4 @@
-xutil = xutil or {}
+_G.xutil = xutil or {}
 xutil.downshift = 10
 
 xutil.reformat = function(spritesheet)
