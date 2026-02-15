@@ -15,7 +15,7 @@ for p, pipe in pairs(data.raw.pipe) do
   for u, underground in pairs(data.raw["pipe-to-ground"]) do
     if u:sub(1,-11) == p and not underground.ignore_by_tomwub then
       underground.solved_by_tomwub = true
-      local underground_collision_mask, tag
+      local underground_collision_mask, layer, connection_category
       -- the underground name matches with the pipe name
       -- also only runs this chunk of code once per supported underground
       for _, pipe_connection in pairs(underground.fluid_box.pipe_connections) do
@@ -35,7 +35,8 @@ for p, pipe in pairs(data.raw.pipe) do
           end
           -- save collision mask for later
           underground_collision_mask = pipe_connection.underground_collision_mask or {layers = {}}
-          tag = pipe_connection.connection_category
+          connection_category = pipe_connection.connection_category
+          layer = settings.startup["npt-tomwub-weaving"].value and pipe_connection.connection_category or "tomwub-underground"
         end
       end
 
@@ -61,10 +62,10 @@ for p, pipe in pairs(data.raw.pipe) do
       end
 
       -- set the collision mask to the connection_category collected earlier
-      underground.collision_mask.layers[tag] = true
+      underground.collision_mask.layers[layer] = true
 
       -- save the tag for later use with assembling machines
-      tags[#tags+1] = tag
+      tags[#tags+1] = connection_category
 
       -- create new item, entity, and collision layer
       data.extend{
@@ -110,35 +111,31 @@ for p, pipe in pairs(data.raw.pipe) do
       }
 
       -- since we can only check while in the loop
-      if mods["no-pipe-touching"] and table_size(data.raw["collision-layer"]) == 55 then
-        if mods["color-coded-pipes"] then
-          error("The mod combination specified is nonviable due to engine constraints. Please remove one of the following:\n- Actual Underground Pipes\n- No Pipe Touching\n- Color Coded Pipes")
-        else
-          local ptg_list = ""
-          for prototype in pairs(data.raw["pipe-to-ground"]) do
-            ptg_list = ptg_list .. "- " .. prototype .. "\n"
-          end
-          error("There are too many pipes. Please remove one of the following mods:\n" .. (
-            (mods["RGBPipes"] and "- RGB Pipes\n" or "") ..
-            (mods["pipe-tiers"] and "- Pipe Tiers\n" or "")
-          ) .. "Or remove a mod that adds some of the following:\n" .. ptg_list)
+      if settings.startup["npt-tomwub-weaving"].value and table_size(data.raw["collision-layer"]) == 55 then
+        local ptg_list = ""
+        for prototype in pairs(data.raw["pipe-to-ground"]) do
+          ptg_list = ptg_list .. "- " .. prototype .. "\n"
         end
+        error("There are too many pipes. Please remove one of the following mods:\n" .. (
+          (mods["RGBPipes"] and "- RGB Pipes\n" or "") ..
+          (mods["pipe-tiers"] and "- Pipe Tiers\n" or "")
+        ) .. "\nOr disable the mod setting: Enable underground pipe weaving.\n\nOr remove a mod that adds some of the following:\n" .. ptg_list)
       end
 
-      if mods["no-pipe-touching"] then
+      if settings.startup["npt-tomwub-weaving"].value then
         data.extend{{
           type = "collision-layer",
-          name = tag
+          name = layer
         }}
       end
 
       local tomwub_pipe = data.raw.pipe["tomwub-" .. p]
       for _, pipe_connection in pairs(tomwub_pipe.fluid_box.pipe_connections) do
-        pipe_connection.connection_category = tag
+        pipe_connection.connection_category = connection_category
       end
 
       -- set the collision mask to the connection_category collected earlier
-      tomwub_pipe.collision_mask.layers[tag] = true
+      tomwub_pipe.collision_mask.layers[layer] = true
 
       -- shift everything down
       tomwub_pipe.icon_draw_specification.shift = util.by_pixel(0, xutil.downshift)
@@ -196,7 +193,7 @@ data:extend{
     linked_game_control = "toggle-rail-layer",
     action = "lua"
   }, -- only create a generic collision mask when NPT is not installed
-  not mods["no-pipe-touching"] and {
+  not settings.startup["npt-tomwub-weaving"].value and {
     type = "collision-layer",
     name = "tomwub-underground",
   } or nil

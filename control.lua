@@ -1,5 +1,12 @@
-script.on_init(function (event)
+script.on_init(function ()
   storage.tomwub = {}
+end)
+
+script.on_configuration_changed(function (event)
+  storage.tomwub = storage.tomwub or {}
+  if script.active_mods["no-pipe-touching"] and not event.mod_changes["no-pipe-touching"] and not settings.startup["npt-tomwub-weaving"].value then
+    game.print("Underground pipe layers can no longer be stacked by default. If you wish to enable this feature, please enable the mod setting: Enable underground pipe weaving")
+  end
 end)
 
 local event_filter = {{filter = "type", type = "pipe"}, {filter = "type", type = "storage-tank"}}

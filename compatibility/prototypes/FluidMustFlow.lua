@@ -14,7 +14,7 @@ local pipes = {
 local underground = data.raw["pipe-to-ground"]["duct-underground"]
 
 underground.solved_by_tomwub = true
-local underground_collision_mask, tag
+local underground_collision_mask, layer, connection_category
 -- the underground name matches with the pipe name
 -- also only runs this chunk of code once per supported underground
 for _, pipe_connection in pairs(underground.fluid_box.pipe_connections) do
@@ -34,7 +34,8 @@ for _, pipe_connection in pairs(underground.fluid_box.pipe_connections) do
     end
     -- save collision mask for later
     underground_collision_mask = pipe_connection.underground_collision_mask or {layers = {}}
-    tag = pipe_connection.connection_category
+    connection_category = pipe_connection.connection_category
+    layer = settings.startup["npt-tomwub-weaving"].value and pipe_connection.connection_category or "tomwub-underground"
   end
 end
 
@@ -63,12 +64,12 @@ if not underground.collision_mask then
 end
 
 -- set the collision mask to the connection_category collected earlier
-underground.collision_mask.layers[tag] = true
+underground.collision_mask.layers[layer] = true
 
-if mods["no-pipe-touching"] then
+if settings.startup["npt-tomwub-weaving"].value then
   data.extend{{
     type = "collision-layer",
-    name = tag
+    name = layer
   }}
 end
 
@@ -112,7 +113,7 @@ for i, pipe in pairs(pipes) do
     }
   }
   
-  tomwub_pipe = data.raw["storage-tank"]["tomwub-" .. p]
+  local tomwub_pipe = data.raw["storage-tank"]["tomwub-" .. p]
   if settings.startup["fmf-enable-duct-auto-join"].value and i > 3 then
     tomwub_pipe.placeable_by = {
       {item = "tomwub-duct-small", count = p == "duct" and 2 or p == "duct-small" and 1 or 4},
@@ -121,11 +122,11 @@ for i, pipe in pairs(pipes) do
   end
 
   for _, pipe_connection in pairs(tomwub_pipe.fluid_box.pipe_connections) do
-    pipe_connection.connection_category = tag
+    pipe_connection.connection_category = connection_category
   end
 
   -- set the collision mask to the connection_category collected earlier
-  tomwub_pipe.collision_mask.layers[tag] = true
+  tomwub_pipe.collision_mask.layers[layer] = true
 
   -- shift everything down
   if tomwub_pipe.icon_draw_specification then

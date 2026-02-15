@@ -1,6 +1,8 @@
 ---------------------------------------------------------------------------------------------------
 Version: 1.0.15
-Date: ????
+Date: 2026-02-14
+  Changes:
+    - Added a mod setting when used in conjunction with no pipe touching to enable weaving layers of different pipes. Default off.
   Bugfixes:
     - Fixed different pipes colliding when NPT is installed due to out-of-map collisions
 ---------------------------------------------------------------------------------------------------
