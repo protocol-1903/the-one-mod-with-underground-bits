@@ -40,6 +40,10 @@ for p, pipe in pairs(data.raw.pipe) do
         end
       end
 
+      log(u)
+      log(connection_category)
+      log(layer)
+
       -- assign new visualizations for the pipe-to-ground
       underground.visualization = xutil.ptg_visualizations
 
@@ -201,16 +205,16 @@ data:extend{
 
 for u, underground in pairs(data.raw["pipe-to-ground"]) do
   if not underground.solved_by_tomwub and not underground.ignore_by_tomwub then
-    local directions, tag = {}
+    local directions, connection_category = {}
 
     if not mods["no-pipe-touching"] then
-      tag = "tomwub-underground"
+      connection_category = "tomwub-underground"
     elseif not underground.npt_compat then
-      tag = "tomwub-" .. "pipe" .. "-underground"
+      connection_category = "tomwub-" .. "pipe" .. "-underground"
     elseif underground.npt_compat.tag then
-      tag = "tomwub-" .. underground.npt_compat.mod .. "-" .. underground.npt_compat.tag .. "-underground"
+      connection_category = "tomwub-" .. underground.npt_compat.mod .. "-" .. underground.npt_compat.tag .. "-underground"
     elseif underground.npt_compat.override then
-      tag = "tomwub-" .. underground.npt_compat.override .. "-underground"
+      connection_category = "tomwub-" .. underground.npt_compat.override .. "-underground"
     else
       error("tag not found for ptg:" .. serpent.block(underground))
     end
@@ -221,7 +225,7 @@ for u, underground in pairs(data.raw["pipe-to-ground"]) do
         pipe_connection.connection_type = "normal"
         pipe_connection.max_underground_distance = nil
         -- set the filter to the psuedo underground pipe name
-        pipe_connection.connection_category = tag
+        pipe_connection.connection_category = connection_category
         directions[#directions+1] = pipe_connection.direction
       end
     end
@@ -258,7 +262,7 @@ for u, underground in pairs(data.raw["pipe-to-ground"]) do
       car = true,
       meltable = true
     }
-    underground.collision_mask.layers[tag] = true
+    underground.collision_mask.layers[settings.startup["npt-tomwub-weaving"].value and connection_category or "tomwub-underground"] = true
 
     -- attempt to fix recipes
     xutil.adjust_recipes(u)
