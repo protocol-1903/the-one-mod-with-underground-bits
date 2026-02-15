@@ -2,7 +2,7 @@
 Version: 1.0.16
 Date: 2026-02-15
   Bugfixes:
-    - Fixed general compatibility with nonspecific pipes when NPT is installed
+    - Fixed general compatibility with nonspecific pipes when NPT is installed. Resolves https://github.com/protocol-1903/the-one-mod-with-underground-bits/issues/27
 ---------------------------------------------------------------------------------------------------
 Version: 1.0.15
 Date: 2026-02-14
