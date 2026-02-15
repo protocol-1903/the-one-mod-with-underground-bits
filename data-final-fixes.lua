@@ -45,11 +45,6 @@ for p, pipe in pairs(data.raw.pipe) do
       -- set heating enrergy of pipe-to-ground to that of the pipe
       underground.heating_energy = pipe.heating_energy
 
-      -- they can only be placed inside the map
-      if data.raw.tile["out-of-map"] then
-        underground_collision_mask.layers["out_of_map"] = true
-      end
-      
       -- update collision mask
       if not underground.collision_mask then
         underground.collision_mask = {
@@ -174,10 +169,17 @@ for p, pipe in pairs(data.raw.pipe) do
 
       -- update the selection box of the pipe
       tomwub_pipe.selection_box = {{-0.4, -0.4 + util.by_pixel(0, xutil.downshift)[2]}, {0.4, 0.4 + util.by_pixel(0, xutil.downshift)[2]}}
-      
+
       -- attempt to fix recipes
       xutil.adjust_recipes(u)
     end
+  end
+end
+
+-- they can only be placed inside the map
+if data.raw.tile["out-of-map"] and settings.startup["npt-tomwub-weaving"].value then
+  for _, layer in pairs(tags) do
+    data.raw.tile["out-of-map"].collision_mask.layers[layer] = true
   end
 end
 
