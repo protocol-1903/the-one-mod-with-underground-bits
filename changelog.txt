@@ -1,4 +1,9 @@
 ---------------------------------------------------------------------------------------------------
+Version: 1.2.2
+Date: ????
+  Bugfixes:
+    - Fixed that renders would not be destroyed when untracked. Resolves https://github.com/protocol-1903/the-one-mod-with-underground-bits/issues/77
+---------------------------------------------------------------------------------------------------
 Version: 1.2.1
 Date: 2026-08-14
   Features:

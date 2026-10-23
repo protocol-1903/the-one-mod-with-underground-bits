@@ -8,10 +8,10 @@ local event_filter = {{filter = "type", type = "pipe"}, {filter = "type", type =
 ---@field trackers {[int]: PipeTracker}
 ---@field tracker_count int
 ---@field last_index int?
----@field scanned_entities LuaEntity[]
+---@field scanned_entities {[int]: {entity: LuaEntity, players: {[int]: boolean?}}}
 ---@field scan_count int
 ---@field batch_size int?
-storage = {}
+storage = {} --[[@as TheOneModWithUndergroundBitsStorage]]
 
 ---@class PipeTracker
 ---@field entity LuaEntity
@@ -23,7 +23,7 @@ storage = {}
 
 script.on_init(function ()
   storage.tomwub = {}
-  storage.weaving = settings.startup["npt-tomwub-weaving"].value
+  storage.weaving = settings.startup["npt-tomwub-weaving"].value --[[@as boolean]]
   storage.trackers = {}
   storage.tracker_count = 0
   storage.last_index = nil
@@ -44,7 +44,7 @@ script.on_configuration_changed(function (event)
     storage.weaving ~= settings.startup["npt-tomwub-weaving"].value and not settings.startup["npt-tomwub-weaving"].value and event.mod_startup_settings_changed) then
     game.print("Underground pipe layers can no longer be stacked by default. If you wish to enable this feature, please enable the mod setting: Enable underground pipe weaving")
   end
-  storage.weaving = settings.startup["npt-tomwub-weaving"].value
+  storage.weaving = settings.startup["npt-tomwub-weaving"].value --[[@as boolean]]
 end)
 
 local ticks_per_scan = settings.global["tomwub-ticks-per-scan"] -- ticks between full scans for new entities
@@ -57,7 +57,7 @@ local function get_tint(entity)
     entity.type == "entity-ghost" and prototypes.utility_constants.ghost_shaderless_tint.ghost_tint or
     settings.global["tomwub-tint-pipes-by-fluid"].value and entity.get_fluid(1) and prototypes.fluid[entity.get_fluid(1).name].base_color or
     {1, 1, 1, 1},
-    settings.global["tomwub-pipe-opacity"].value
+    settings.global["tomwub-pipe-opacity"].value --[[@as number]]
   )
 end
 
@@ -140,6 +140,7 @@ end
 ---@param entity LuaEntity
 local function update_tracker(entity)
   if not entity.valid then return end
+  ---@cast entity.unit_number -?
   if storage.trackers[entity.unit_number] then
     storage.trackers[entity.unit_number].last_tick = game.tick
     return
@@ -259,9 +260,10 @@ local function scan_for_entities(player_index)
   } do
     for _, entity in pairs(player.surface.find_entities_filtered{
       position = player.position,
-      radius = player.mod_settings["tomwub-underground-indicators-range"].value,
+      radius = player.mod_settings["tomwub-underground-indicators-range"].value --[[@as number]],
       [type] = scan_targets
     }) do
+      ---@cast entity.unit_number -?
       if (entity.name == "entity-ghost" and entity.ghost_name or entity.name):sub(1, 7) == "tomwub-" then
         if storage.trackers[entity.unit_number] then
           -- update tracker, if it exists
@@ -307,8 +309,8 @@ script.on_event(defines.events.on_player_controller_changed, function (event)
 
   local item = player.cursor_ghost and player.cursor_ghost.name.name or
     player.cursor_stack and player.cursor_stack.valid_for_read and player.cursor_stack.name or nil
-  local quality = player.cursor_ghost and player.cursor_ghost.quality or 
-    player.cursor_stack and player.cursor_stack.valid_for_read and player.cursor_stack.quality or nil
+  local quality = player.cursor_ghost and player.cursor_ghost.name or 
+    player.cursor_stack and player.cursor_stack.valid_for_read and player.cursor_stack.quality.name or nil
   local count = storage.tomwub[player.index].count
 
   if not item or item:sub(1,7) ~= "tomwub-" then return end
@@ -321,7 +323,7 @@ script.on_event(defines.events.on_player_controller_changed, function (event)
     storage.tomwub[player.index].count = nil
     return
   end
-  storage.tomwub[player.index].count = -3 - count
+  storage.tomwub[player.index].count = -3 - count --[[@as integer]]
 end)
 
 ---@param event EventData.on_selected_entity_changed
@@ -360,10 +362,10 @@ script.on_event(defines.events.on_player_cursor_stack_changed, function (event)
   if player.controller_type == defines.controllers.remote then return end
 
   local item = player.cursor_ghost and player.cursor_ghost.name.name or
-    player.cursor_stack and player.cursor_stack.valid_for_read and player.cursor_stack.name or nil
+    player.cursor_stack and player.cursor_stack.valid_for_read and player.cursor_stack.name or nil --[[@as string?]]
   local count = not player.cursor_ghost and player.cursor_stack and player.cursor_stack.valid_for_read and player.cursor_stack.count or nil
-  local quality = player.cursor_ghost and player.cursor_ghost.quality or
-    player.cursor_stack and player.cursor_stack.valid_for_read and player.cursor_stack.quality or nil
+  local quality = player.cursor_ghost and player.cursor_ghost.quality.name or
+    player.cursor_stack and player.cursor_stack.valid_for_read and player.cursor_stack.quality.name or nil
 
   storage.tomwub[event.player_index] = storage.tomwub[event.player_index] or {}
 
@@ -393,13 +395,13 @@ script.on_event(defines.events.on_player_cursor_stack_changed, function (event)
         name = player.cursor_ghost.name.name,
         count = removed,
         quality = quality
-      }
+      } --[[@as ItemStackIdentification]]
 
       -- set hand location to preserve place for player to put items
       player.hand_location = {
         inventory = player.get_main_inventory().index,
         slot = stack
-      }
+      } --[[@as ItemStackLocation]]
     end
   elseif old_count > 0 and item ~= old_item and old_item:sub(1,7) == "tomwub-" then
     -- was previously holding item, just put it away so put pipes back into inventory
@@ -410,7 +412,7 @@ script.on_event(defines.events.on_player_cursor_stack_changed, function (event)
     -- get amount added to inventory
     local inserted = insert_if_safe(player.get_main_inventory(), old_item:sub(8, -1), old_quality, old_count)
 
-    on_selected(event)
+    on_selected(event --[[@as EventData.on_selected_entity_changed]])
 
     -- something must be obstructing the cursor, put it back
     if inserted and inserted ~= old_count then
@@ -419,7 +421,7 @@ script.on_event(defines.events.on_player_cursor_stack_changed, function (event)
         name = item,
         count = count,
         quality = quality
-      } then
+      } --[[@as ItemStackIdentification]] then
         player.clear_cursor()
       end
 
@@ -431,7 +433,7 @@ script.on_event(defines.events.on_player_cursor_stack_changed, function (event)
         name = old_item,
         count = old_count - inserted,
         quality = old_quality
-      }
+      } --[[@as ItemStackIdentification]]
 
       -- set the previous item and count
       storage.tomwub[event.player_index] = {
@@ -442,7 +444,7 @@ script.on_event(defines.events.on_player_cursor_stack_changed, function (event)
 
       return -- return early, we don't want to run other code
     end
-  elseif old_count < -3 and not player.is_cursor_empty() and item:sub(1,7) == "tomwub-" then
+  elseif old_count < -3 and not player.is_cursor_empty() and item and item:sub(1,7) == "tomwub-" then
 
     local amount_removed = player.controller_type == defines.controllers.editor and -3 - old_count or player.get_main_inventory().remove{
       name = item:sub(8, -1),
@@ -458,7 +460,7 @@ script.on_event(defines.events.on_player_cursor_stack_changed, function (event)
         name = item:sub(8, -1),
         count = player.cursor_ghost.stack_size - amount_removed,
         quality = quality
-      }
+      } --[[@as ItemStackIdentification]]
 
       _, stack = player.get_main_inventory().find_empty_stack()
 
@@ -475,7 +477,7 @@ script.on_event(defines.events.on_player_cursor_stack_changed, function (event)
     player.hand_location = {
       inventory = player.get_main_inventory().index,
       slot = stack
-    }
+    } --[[@as ItemStackLocation]]
   end
 
   -- set the previous item and count
@@ -487,30 +489,33 @@ script.on_event(defines.events.on_player_cursor_stack_changed, function (event)
 end)
 
 -- on placed entity
+--- @param event EventData.on_built_entity|EventData.on_robot_built_entity|EventData.on_space_platform_built_entity|EventData.script_raised_built|EventData.script_raised_revive|EventData.on_cancelled_deconstruction
 local function on_built(event)
   -- teleport valid entities so that pipe visualizations appear properly
   local entity = event.entity
   local player_index = event.player_index
   if not player_index and entity.last_user then
     -- ensure the player is holding a valid item (entity was placed by script while referencing player)
-    local player = game.get_player(entity.last_user.index)
-    local item = not player.is_cursor_empty() and player.cursor_stack and player.cursor_stack.valid_for_read and player.cursor_stack.name or
-      player.cursor_ghost and player.cursor_ghost.name.name or nil
-    if item and item:sub(1,7) == "tomwub-" then player_index = player.index end
+    local player = entity.last_user
+    if player then
+      local item = not player.is_cursor_empty() and player.cursor_stack and player.cursor_stack.valid_for_read and player.cursor_stack.name or
+        player.cursor_ghost and player.cursor_ghost.name.name or nil
+      if item and item:sub(1,7) == "tomwub-" then player_index = player.index end
+    end
   end
-  local name = event.entity.type == "entity-ghost" and entity.ghost_name or entity.name
+  local name = entity.type == "entity-ghost" and entity.ghost_name or entity.name
   if name:sub(1,7) == "tomwub-" then
-    entity.teleport(event.entity.position)
+    entity.teleport(entity.position)
 
     if player_index or event.tags and event.tags.tomwub_players then
       local players = event.tags and event.tags.tomwub_players or {}
       if player_index then players[player_index] = true end
       update_tracker(entity)
-      for index in pairs(players) do
-        register_for_tracker(storage.trackers[event.entity.unit_number], index)
+      for index in pairs(players --[[@as {[uint]: boolean}]]) do
+        register_for_tracker(storage.trackers[entity.unit_number --[[@as int]]], index)
       end
-      for _, e in pairs(perel.get_fluidbox_neighoburs(event.entity)) do
-        update_render(storage.trackers[e.unit_number], true)
+      for _, e in pairs(perel.get_fluidbox_neighoburs(entity)) do
+        update_render(storage.trackers[e.unit_number --[[@as uint]]], true)
       end
     end
   else
@@ -543,20 +548,18 @@ script.on_event(defines.events.script_raised_built, on_built, event_filter)
 script.on_event(defines.events.script_raised_revive, on_built, event_filter)
 
 -- swap between aboveground and belowground layers
+---@param event EventData.CustomInputEvent
 script.on_event("tomwub-swap-layer", function(event)
   local player = game.get_player(event.player_index)
 
   local item = player.cursor_ghost and player.cursor_ghost.name.name or
     player.cursor_stack and player.cursor_stack.valid_for_read and player.cursor_stack.name or ""
-  local quality = player.cursor_ghost and player.cursor_ghost.quality or 
-    player.cursor_stack and player.cursor_stack.valid_for_read and player.cursor_stack.quality or nil
+  local quality = player.cursor_ghost and player.cursor_ghost.quality.name or 
+    player.cursor_stack and player.cursor_stack.valid_for_read and player.cursor_stack.quality.name or nil
   local count = player.cursor_stack and player.cursor_stack.valid_for_read and player.cursor_stack.count or 0
 
   -- if invalid or not pipe, return
   if player.is_cursor_empty() or item:sub(1,7) ~= "tomwub-" and not prototypes.item["tomwub-" .. item] then return end
-  -- yes it works no i dont know why
-  -- also man .valid_for_read is so powerful
-  -- it's hopefully a valid item, so do a little switcheroo
 
   -- holding underground, switch to pipe
   if item:sub(1,7) == "tomwub-" then
@@ -573,7 +576,7 @@ script.on_event("tomwub-swap-layer", function(event)
         name = item:sub(8, -1),
         count = count,
         quality = quality
-      }
+      } --[[@as ItemStackIdentification]]
       -- find open slot for hand to go
       local _, stack = player.get_main_inventory().find_empty_stack()
       -- set hand location to preserve place for player to put items
@@ -581,7 +584,7 @@ script.on_event("tomwub-swap-layer", function(event)
         player.hand_location = {
           inventory = player.get_main_inventory().index,
           slot = stack
-        }
+        } --[[@as ItemStackLocation]]
       end
     end
     if not settings.global["tomwub-always-show-undergrounds"].value then
@@ -607,14 +610,14 @@ script.on_event("tomwub-swap-layer", function(event)
         player.hand_location = {
           inventory = player.get_main_inventory().index,
           slot = stack
-        }
+        } --[[@as ItemStackLocation]]
       end
     end
     scan_for_entities(player.index)
   end
 
   -- update selected entity
-  on_selected(event)
+  on_selected(event --[[@as EventData.on_selected_entity_changed]])
 
   -- set the previous item and count
   storage.tomwub[event.player_index] = {
@@ -637,14 +640,14 @@ script.on_event(defines.events.on_tick, function (event)
   end
   -- validate and register cached scan data
   local registrations = math.ceil(storage.scan_count / (event.tick + ticks_per_scan.value / 2) % ticks_per_scan.value)
-  registrations = registrations > min_registrations_per_tick.value and registrations or min_registrations_per_tick.value
+  registrations = registrations > min_registrations_per_tick.value and registrations or min_registrations_per_tick.value --[[@as integer]]
   for _ = 1, registrations do
     local i, tuple = next(storage.scanned_entities)
-    if not tuple then break end
+    if not i or not tuple then break end
     if next(tuple.players) and tuple.entity.valid then
       update_tracker(tuple.entity)
       for player_index in pairs(tuple.players) do
-        register_for_tracker(storage.trackers[tuple.entity.unit_number], player_index)
+        register_for_tracker(storage.trackers[tuple.entity.unit_number --[[@as int]]], player_index)
       end
     end
     storage.scanned_entities[i] = nil
@@ -656,7 +659,7 @@ script.on_event(defines.events.on_tick, function (event)
     storage.last_index = nil
   end
   -- update trackers
-  local old_trackers = {}
+  local old_trackers = {} --[[@as int[] ]]
   local limit = (storage.last_index or event.tick % ticks_per_update.value == 0) and storage.batch_size or 0
   local i = 1
   while i <= limit do
@@ -664,7 +667,7 @@ script.on_event(defines.events.on_tick, function (event)
     if tracker and (not tracker.entity.valid or not settings.global["tomwub-always-show-undergrounds"].value and (event.tick - tracker.last_tick) > 2 * ticks_per_scan.value) then
       old_trackers[#old_trackers+1] = index
     elseif tracker and next(tracker.players) then
-      tracker.updates = (tracker.updates + 1) % checks_per_update.value
+      tracker.updates = (tracker.updates + 1) % checks_per_update.value --[[@as integer]]
       update_render(tracker, tracker.updates == 0)
       i = i + 1
     end
@@ -674,7 +677,7 @@ script.on_event(defines.events.on_tick, function (event)
   -- remove old trackers
   for _, index in pairs(old_trackers) do
     storage.tracker_count = storage.tracker_count - 1
-    if storage.trackers[index] and storage.trackers[index].render and storage.trackers[index].valid then storage.trackers[index].destroy() end
+    if storage.trackers[index] and storage.trackers[index].render and storage.trackers[index].render.valid then storage.trackers[index].render.destroy() end
     storage.trackers[index] = nil
   end
 end)
