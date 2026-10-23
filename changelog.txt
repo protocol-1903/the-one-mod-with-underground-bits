@@ -3,6 +3,7 @@ Version: 1.2.2
 Date: ????
   Bugfixes:
     - Fixed that renders would not be destroyed when untracked. Resolves https://github.com/protocol-1903/the-one-mod-with-underground-bits/issues/77
+    - Fixed that pipes that cannot connect to other pipe types would connect to other pipe types when underground. Notably, Fluid Must Flow ducts. Resolves https://github.com/protocol-1903/the-one-mod-with-underground-bits/issues/72
     - Fixed that using fluid must flow with duct-auto-join would use an old build script instead of the new one, causing numerous issues. Resolves https://github.com/protocol-1903/the-one-mod-with-underground-bits/issues/64
 ---------------------------------------------------------------------------------------------------
 Version: 1.2.1

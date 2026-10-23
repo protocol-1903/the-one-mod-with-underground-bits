@@ -182,8 +182,9 @@ tomwub.adjust_ptg = function(prototype, pipe)
       pipe_connection.connection_type = "normal"
       pipe_connection.max_underground_distance = nil
       -- set the filter to the psuedo underground pipe name
+      pipe_connection.connection_category = pipe_connection.connection_category or "underground"
       if not mods["no-pipe-touching"] then
-        pipe_connection.connection_category = "tomwub-underground"
+        pipe_connection.connection_category = "tomwub-" .. pipe_connection.connection_category
       elseif not prototype.npt_compat then
         pipe_connection.connection_category = "tomwub-" .. pipe .. "-underground"
       elseif prototype.npt_compat.tag then
