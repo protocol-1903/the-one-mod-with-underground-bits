@@ -12,6 +12,7 @@ end
 ---@class (partial) data.EntityWithOwnerPrototype
 ---@field ignore_by_tomwub boolean?
 ---@field solved_by_tomwub boolean?
+---@field associated_pipe string?
 
 require("__the-one-mod-with-underground-bits__/compatibility/prototypes/FluidMustFlow")
 require("__the-one-mod-with-underground-bits__/compatibility/prototypes/dredgeworks")
@@ -22,15 +23,23 @@ require("__the-one-mod-with-underground-bits__/compatibility/prototypes/undergro
 require("__the-one-mod-with-underground-bits__/compatibility/prototypes/Krastorio2")
 require("__the-one-mod-with-underground-bits__/compatibility/prototypes/Krastorio2-spaced-out")
 require("__the-one-mod-with-underground-bits__/compatibility/prototypes/linox")
+require("__the-one-mod-with-underground-bits__/compatibility/prototypes/Yuoki")
 
 for u, underground in pairs(data.raw["pipe-to-ground"]) do
-  if not underground.ignore_by_tomwub and not underground.solved_by_tomwub then
+  if not underground.ignore_by_tomwub and not underground.solved_by_tomwub and not underground.associated_pipe then
     local i, j = u:find("-to-ground", nil, true)
     if not i then
-       i, j = u:find("-underground", nil, true)
+        i, j = u:find("-underground", nil, true)
     end
     if not i or not j then error("Coult not find substring for [" .. u .. "]") end
     local p = u:sub(1, i - 1) .. (j and u:sub(j + 1) or "")
+    underground.associated_pipe = p
+  end
+end
+
+for u, underground in pairs(data.raw["pipe-to-ground"]) do
+  if not underground.ignore_by_tomwub and not underground.solved_by_tomwub then
+    local p = underground.associated_pipe
     local pipe = data.raw.pipe[p]
     if pipe then
       local mask, layer, connection_category = tomwub.adjust_ptg(underground, p)
