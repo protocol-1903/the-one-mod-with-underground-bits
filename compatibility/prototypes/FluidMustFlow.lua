@@ -23,7 +23,7 @@ for i, t in pairs{
         {item = "duct-small", count = t == "duct" and 2 or t == "duct-small" and 1 or 4}
       }
     end
-    local bitmasks = {north = 0, east = 0, south = 0, west = 0}
+    local bitmasks = {north = 0 --[[@as number]], east = 0 --[[@as number]], south = 0 --[[@as number]], west = 0 --[[@as number]]}
     for _, pipe_connection in pairs(tank.fluid_box.pipe_connections) do
       bitmasks.north = bitmasks.north + 2 ^ ((pipe_connection.direction / 4) % 4)
       bitmasks.east = bitmasks.east + 2 ^ ((pipe_connection.direction / 4 + 1) % 4)

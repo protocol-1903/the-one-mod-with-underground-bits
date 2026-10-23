@@ -1,7 +1,7 @@
 _G.tomwub = tomwub or {}
 tomwub.downshift = 10
 
----@param spritesheet data.Sprite
+---@param spritesheet data.Sprite4Way
 tomwub.reformat = function(spritesheet)
   for s, sprite in pairs(spritesheet or {}) do
     if type(sprite) == "table" then
@@ -33,7 +33,7 @@ tomwub.reformat = function(spritesheet)
   end
 end
 
----@param underground boolean
+---@param underground boolean?
 ---@return data.Sprite4Way
 tomwub.ptg_visualization = function(underground)
   return {
@@ -129,6 +129,7 @@ tomwub.dirmap = {
   "west"
 }
 
+---@diagnostic disable-next-line: unresolved-require
 local recycling = mods.recycling and require("__recycling__.prototypes.recycling") or nil
 
 ---@param id string
@@ -140,7 +141,7 @@ tomwub.adjust_recipes = function(id)
   } do
     -- if recipe exists
     if data.raw.recipe[recipe] then
-      for _, ingredient in pairs(data.raw.recipe[recipe].ingredients) do
+      for _, ingredient in pairs(data.raw.recipe[recipe].ingredients --[[@as data.IngredientPrototype[] ]]) do
         if data.raw.pipe[ingredient.name] and ingredient.amount > 2 then
           ingredient.amount = 2 -- if a pipe, set amount to 2
         end
@@ -164,6 +165,7 @@ local underground_definitions = data.raw["mod-data"]["the-one-mod-with-undergrou
 
 ---@param prototype data.PipeToGroundPrototype
 ---@param pipe data.PipeName
+---@return data.CollisionMaskConnector, data.CollisionLayerName, string
 tomwub.adjust_ptg = function(prototype, pipe)
   log("adjusting pipe to ground: " .. prototype.name)
   prototype.solved_by_tomwub = true
@@ -191,8 +193,8 @@ tomwub.adjust_ptg = function(prototype, pipe)
       end
       -- save collision mask for later
       underground_collision_mask = pipe_connection.underground_collision_mask or {layers = {}}
-      connection_category = pipe_connection.connection_category
-      layer = settings.startup["npt-tomwub-weaving"].value and pipe_connection.connection_category or "tomwub-underground"
+      connection_category = pipe_connection.connection_category --[[@as string]]
+      layer = settings.startup["npt-tomwub-weaving"].value and pipe_connection.connection_category --[[@as data.CollisionLayerName]] or "tomwub-underground"
     end
   end
 
