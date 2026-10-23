@@ -9,6 +9,10 @@ for prototype in pairs(data.raw["damage-type"]) do
   }
 end
 
+---@class (partial) data.EntityWithOwnerPrototype
+---@field ignore_by_tomwub boolean?
+---@field solved_by_tomwub boolean?
+
 require("__the-one-mod-with-underground-bits__/compatibility/prototypes/FluidMustFlow")
 require("__the-one-mod-with-underground-bits__/compatibility/prototypes/dredgeworks")
 require("__the-one-mod-with-underground-bits__/compatibility/prototypes/Factorio-Tiberium")
@@ -57,7 +61,7 @@ end
 
 for u, underground in pairs(data.raw["pipe-to-ground"]) do
   if not underground.solved_by_tomwub and not underground.ignore_by_tomwub then
-    local directions, connection_category = {}
+    local directions, connection_category = {}, nil
 
     if not mods["no-pipe-touching"] then
       connection_category = "tomwub-underground"
@@ -104,7 +108,7 @@ for u, underground in pairs(data.raw["pipe-to-ground"]) do
     end
 
     -- update collision mask
-    underground.collision_mask = underground.collision_mask or {}
+    underground.collision_mask = underground.collision_mask or {} --[[@as data.CollisionMaskConnector]]
     underground.collision_mask.layers = underground.collision_mask.layers or {
       is_lower_object = true,
       water_tile = true,
