@@ -2,6 +2,8 @@ require "__perel__.util.scripts.fluids"
 require "__core__.lualib.util"
 local event_filter = {{filter = "type", type = "pipe"}, {filter = "type", type = "storage-tank"}, {filter = "ghost_type", type = "pipe"}, {filter = "ghost_type", type = "storage-tank"}}
 
+local join_ducts = require("compatibility.scripts.FluidMustFlow")
+
 ---@class (exact) TheOneModWithUndergroundBitsStorage
 ---@field tomwub {[int]: {item: string?, quality: string?, count: int?}}
 ---@field weaving boolean
@@ -280,6 +282,7 @@ local function scan_for_entities(player_index)
   end
 end
 
+---@param event EventData.on_runtime_mod_setting_changed
 script.on_event(defines.events.on_runtime_mod_setting_changed, function (event)
   ticks_per_scan = settings.global["tomwub-ticks-per-scan"]
   ticks_per_update = settings.global["tomwub-ticks-per-update"]
@@ -302,6 +305,7 @@ script.on_event(defines.events.on_runtime_mod_setting_changed, function (event)
   end
 end)
 
+---@param event EventData.on_player_controller_changed
 script.on_event(defines.events.on_player_controller_changed, function (event)
   local player = game.get_player(event.player_index)
 
@@ -526,18 +530,22 @@ local function on_built(event)
     end
   end
 
-  if not player_index or not storage.tomwub[player_index] or event.name == defines.events.script_raised_built then return end
-  local player = game.get_player(player_index)
+  if player_index and storage.tomwub[player_index] and event.name ~= defines.events.script_raised_built then
+    local player = game.get_player(player_index)
 
-  -- if player just placed last item, then signal to script to update hand again
-  if storage.tomwub[player.index].item and storage.tomwub[player.index].item:sub(1,7) == "tomwub-" and storage.tomwub[player.index].count == 1 then
-    storage.tomwub[player.index].count = -1
+    -- if player just placed last item, then signal to script to update hand again
+    if storage.tomwub[player.index].item and storage.tomwub[player.index].item:sub(1,7) == "tomwub-" and storage.tomwub[player.index].count == 1 then
+      storage.tomwub[player.index].count = -1
 
-    -- set ghost cursor
-    player.cursor_ghost = {
-      name = storage.tomwub[player.index].item,
-      quality = entity.quality
-    }
+      -- set ghost cursor
+      player.cursor_ghost = {
+        name = storage.tomwub[player.index].item,
+        quality = entity.quality
+      }
+    end
+  end
+  if entity.name == "tomwub-duct-small" or entity.name == "tomwub-duct" then
+    join_ducts(event)
   end
 end
 
@@ -681,5 +689,3 @@ script.on_event(defines.events.on_tick, function (event)
     storage.trackers[index] = nil
   end
 end)
-
-require("compatibility.scripts.FluidMustFlow")

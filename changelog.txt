@@ -3,6 +3,7 @@ Version: 1.2.2
 Date: ????
   Bugfixes:
     - Fixed that renders would not be destroyed when untracked. Resolves https://github.com/protocol-1903/the-one-mod-with-underground-bits/issues/77
+    - Fixed that using fluid must flow with duct-auto-join would use an old build script instead of the new one, causing numerous issues. Resolves https://github.com/protocol-1903/the-one-mod-with-underground-bits/issues/64
 ---------------------------------------------------------------------------------------------------
 Version: 1.2.1
 Date: 2026-08-14
