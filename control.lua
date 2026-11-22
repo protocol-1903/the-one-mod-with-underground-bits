@@ -174,15 +174,24 @@ local function register_for_tracker(tracker, player_index)
     if tracker.entity.type == "entity-ghost" then
       local tags = tracker.entity.tags or {}
       tags.tomwub_players = tags.tomwub_players or {}
-      tags.tomwub_players[player_index] = true
+      local found
+      for _, player in pairs(tags) do
+        if player == player_index then
+          found = true
+          break
+        end
+      end
+      if not found then tags.tomwub_players[#tags.tomwub_players + 1] = player_index end
       tracker.entity.tags = tags
     end
     update_render(tracker)
     tracker.render.visible = true
     local players = tracker.render.players or {}
-    players[#players+1] = player_index
+    if not tracker.players[player_index] then
+      players[#players+1] = player_index
+      tracker.players[player_index] = true
+    end
     tracker.render.players = players
-    tracker.players[player_index] = true
   end
 end
 
@@ -204,7 +213,13 @@ local function deregister_trackers(player_index)
       if tracker.entity.type == "entity-ghost" then
         local tags = tracker.entity.tags or {}
         tags.tomwub_players = tags.tomwub_players or {}
-        tags.tomwub_players[player_index] = nil
+        for i, player in pairs(tags) do
+          if player == player_index then
+            ---@diagnostic disable-next-line: param-type-mismatch
+            table.remove(tags.tomwub_players, i)
+            break
+          end
+        end
         tracker.entity.tags = tags
       end
     end
@@ -512,10 +527,15 @@ local function on_built(event)
     entity.teleport(entity.position)
 
     if player_index or event.tags and event.tags.tomwub_players then
-      local players = event.tags and event.tags.tomwub_players or {}
+      local tags = event.tags and event.tags.tomwub_players or {}
+      local players = {} --[[@as {[uint]: boolean}]]
+      ---@diagnostic disable-next-line: param-type-mismatch
+      for _, player in pairs(tags) do
+        players[player] = true
+      end
       if player_index then players[player_index] = true end
       update_tracker(entity)
-      for index in pairs(players --[[@as {[uint]: boolean}]]) do
+      for index in pairs(players) do
         register_for_tracker(storage.trackers[entity.unit_number --[[@as int]]], index)
       end
       for _, e in pairs(perel.get_fluidbox_neighoburs(entity)) do

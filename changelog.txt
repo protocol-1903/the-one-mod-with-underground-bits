@@ -5,6 +5,7 @@ Date: ????
     - Overrides pipe sprites instead of making them invisible. Resolves https://github.com/protocol-1903/bugreports/issues/290
   Bugfixes:
     - Fixed a crash when item quality was improperly accessed. Resolves https://github.com/protocol-1903/bugreports/issues/27
+    - Fixed bad indexing ghost tags when saving player indices. Resolves https://github.com/protocol-1903/bugreports/issues/3
 ---------------------------------------------------------------------------------------------------
 Version: 1.2.2
 Date: 2026-10-25
