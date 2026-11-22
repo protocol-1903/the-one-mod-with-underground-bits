@@ -14,9 +14,10 @@ for i, t in pairs{
 } do
   local tank = data.raw["storage-tank"][t]
   if tank and not tank.ignore_by_tomwub then
-    local u_tank = tomwub.make_tomwub_variant(tank, mask, layer, connection_category)
+    local u_tank = tomwub.make_tomwub_variant(tank --[[@as data.PipePrototype]], mask, layer, connection_category) --[[@as data.StorageTankPrototype]]
     u_tank.placeable_by = { {item = "tomwub-pipe", count = 1}, {item = "pipe", count = 1}, {item = "tomwub-" .. t, count = 1}, {item = t, count = 1} }
-    tomwub.reformat(u_tank.pictures.picture)
+    u_tank.pictures = nil
+    u_tank.fluid_box.pipe_covers = nil
     if settings.startup["fmf-enable-duct-auto-join"].value and i > 3 then
       u_tank.placeable_by = {
         {item = "tomwub-duct-small", count = t == "duct" and 2 or t == "duct-small" and 1 or 4},

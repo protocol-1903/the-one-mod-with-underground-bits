@@ -1,4 +1,9 @@
 ---------------------------------------------------------------------------------------------------
+Version: 1.2.3
+Date: ????
+  Changes:
+    - Overrides pipe sprites instead of making them invisible. Resolves https://github.com/protocol-1903/bugreports/issues/290
+---------------------------------------------------------------------------------------------------
 Version: 1.2.2
 Date: 2026-10-25
   Compatibility:

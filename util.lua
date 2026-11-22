@@ -1,40 +1,309 @@
-_G.tomwub = tomwub or {}
+---@class (exact) TOMWUB
+---@field downshift uint
+---@field pipe_visualizations data.PipePictures
+---@field ptg_visualization fun(underground: boolean?): data.Sprite4Way
+---@field ptg_visualizations data.Sprite4Way
+---@field base_visualizations data.Sprite4Way
+---@field dirmap table<int, string>
+---@field adjust_recipes fun(id: string)
+---@field adjust_ptg fun(prototype: data.PipeToGroundPrototype, pipe: data.PipeName): data.CollisionMaskConnector, data.CollisionLayerName, string
+---@field make_tomwub_variant fun(pipe: data.PipePrototype, mask: data.CollisionMaskConnector?, layer: data.CollisionLayerName?, category: string?): data.PipePrototype
+---@field default_layer data.CollisionLayerName
+---@field default_category string
+tomwub = tomwub or {}
 tomwub.downshift = 10
 
----@param spritesheet data.Sprite4Way
-tomwub.reformat = function(spritesheet)
-  for s, sprite in pairs(spritesheet or {}) do
-    if type(sprite) == "table" then
-      if sprite.layers then
-        for _, sprit in pairs(sprite.layers) do
-          if not s:find("visualization") or sprit.filename:sub(-10) == "shadow.png" then
-            sprit.tint = {0, 0, 0, 0}
-          else
-            sprit.shift = util.by_pixel(0, tomwub.downshift)
-          end
-        end
-      elseif sprite.north then
-        for _, direction in pairs{"north", "east", "south", "west"} do
-          tomwub.reformat(sprite[direction])
-        end
-      else
-        if not s:find("visualization") or sprite.filename:sub(-10) == "shadow.png" then
-          sprite.tint = {0, 0, 0, 0}
-        else
-          sprite.shift = util.by_pixel(0, tomwub.downshift)
-        end
-      end
-      if s:find("disabled_visualization") then
-        sprite.filename = "__the-one-mod-with-underground-bits__/graphics/underground-disabled-visualization.png"
-      elseif s:find("visualization") then
-        sprite.filename = "__the-one-mod-with-underground-bits__/graphics/underground-visualization.png"
-      end
-    end
-  end
-end
+tomwub.pipe_visualizations = {
+  straight_vertical_single_visualization = {
+    filename = "__the-one-mod-with-underground-bits__/graphics/underground-visualization.png",
+    priority = "extra-high",
+    x = 0 * 64,
+    size = 64,
+    scale = 0.5,
+    flags = {"icon"},
+  },
+  straight_vertical_visualization = {
+    filename = "__the-one-mod-with-underground-bits__/graphics/underground-visualization.png",
+    priority = "extra-high",
+    x = 5 * 64,
+    size = 64,
+    scale = 0.5,
+    flags = {"icon"},
+  },
+  straight_vertical_window_visualization = {
+    filename = "__the-one-mod-with-underground-bits__/graphics/underground-visualization.png",
+    priority = "extra-high",
+    x = 5 * 64,
+    size = 64,
+    scale = 0.5,
+    flags = {"icon"},
+  },
+  straight_horizontal_window_visualization = {
+    filename = "__the-one-mod-with-underground-bits__/graphics/underground-visualization.png",
+    priority = "extra-high",
+    x = 10 * 64,
+    size = 64,
+    scale = 0.5,
+    flags = {"icon"},
+  },
+  straight_horizontal_visualization = {
+    filename = "__the-one-mod-with-underground-bits__/graphics/underground-visualization.png",
+    priority = "extra-high",
+    x = 10 * 64,
+    size = 64,
+    scale = 0.5,
+    flags = {"icon"},
+  },
+  corner_up_right_visualization = {
+    filename = "__the-one-mod-with-underground-bits__/graphics/underground-visualization.png",
+    priority = "extra-high",
+    x = 3 * 64,
+    size = 64,
+    scale = 0.5,
+    flags = {"icon"},
+  },
+  corner_up_left_visualization = {
+    filename = "__the-one-mod-with-underground-bits__/graphics/underground-visualization.png",
+    priority = "extra-high",
+    x = 9 * 64,
+    size = 64,
+    scale = 0.5,
+    flags = {"icon"},
+  },
+  corner_down_right_visualization = {
+    filename = "__the-one-mod-with-underground-bits__/graphics/underground-visualization.png",
+    priority = "extra-high",
+    x = 6 * 64,
+    size = 64,
+    scale = 0.5,
+    flags = {"icon"},
+  },
+  corner_down_left_visualization = {
+    filename = "__the-one-mod-with-underground-bits__/graphics/underground-visualization.png",
+    priority = "extra-high",
+    x = 12 * 64,
+    size = 64,
+    scale = 0.5,
+    flags = {"icon"},
+  },
+  t_up_visualization = {
+    filename = "__the-one-mod-with-underground-bits__/graphics/underground-visualization.png",
+    priority = "extra-high",
+    x = 11 * 64,
+    size = 64,
+    scale = 0.5,
+    flags = {"icon"},
+  },
+  t_down_visualization = {
+    filename = "__the-one-mod-with-underground-bits__/graphics/underground-visualization.png",
+    priority = "extra-high",
+    x = 14 * 64,
+    size = 64,
+    scale = 0.5,
+    flags = {"icon"},
+  },
+  t_right_visualization = {
+    filename = "__the-one-mod-with-underground-bits__/graphics/underground-visualization.png",
+    priority = "extra-high",
+    x = 7 * 64,
+    size = 64,
+    scale = 0.5,
+    flags = {"icon"},
+  },
+  t_left_visualization = {
+    filename = "__the-one-mod-with-underground-bits__/graphics/underground-visualization.png",
+    priority = "extra-high",
+    x = 13 * 64,
+    size = 64,
+    scale = 0.5,
+    flags = {"icon"},
+  },
+  cross_visualization = {
+    filename = "__the-one-mod-with-underground-bits__/graphics/underground-visualization.png",
+    priority = "extra-high",
+    x = 15 * 64,
+    size = 64,
+    scale = 0.5,
+    flags = {"icon"},
+  },
+  ending_up_visualization = {
+    filename = "__the-one-mod-with-underground-bits__/graphics/underground-visualization.png",
+    priority = "extra-high",
+    x = 1 * 64,
+    size = 64,
+    scale = 0.5,
+    flags = {"icon"},
+  },
+  ending_down_visualization = {
+    filename = "__the-one-mod-with-underground-bits__/graphics/underground-visualization.png",
+    priority = "extra-high",
+    x = 4 * 64,
+    size = 64,
+    scale = 0.5,
+    flags = {"icon"},
+  },
+  ending_right_visualization = {
+    filename = "__the-one-mod-with-underground-bits__/graphics/underground-visualization.png",
+    priority = "extra-high",
+    x = 2 * 64,
+    size = 64,
+    scale = 0.5,
+    flags = {"icon"},
+  },
+  ending_left_visualization = {
+    filename = "__the-one-mod-with-underground-bits__/graphics/underground-visualization.png",
+    priority = "extra-high",
+    x = 8 * 64,
+    size = 64,
+    scale = 0.5,
+    flags = {"icon"},
+  },
+  straight_vertical_single_disabled_visualization = {
+    filename = "__the-one-mod-with-underground-bits__/graphics/underground-disabled-visualization.png",
+    priority = "extra-high",
+    x = 0 * 64,
+    size = 64,
+    scale = 0.5,
+    flags = {"icon"},
+  },
+  straight_vertical_disabled_visualization = {
+    filename = "__the-one-mod-with-underground-bits__/graphics/underground-disabled-visualization.png",
+    priority = "extra-high",
+    x = 5 * 64,
+    size = 64,
+    scale = 0.5,
+    flags = {"icon"},
+  },
+  straight_vertical_window_disabled_visualization = {
+    filename = "__the-one-mod-with-underground-bits__/graphics/underground-disabled-visualization.png",
+    priority = "extra-high",
+    x = 5 * 64,
+    size = 64,
+    scale = 0.5,
+    flags = {"icon"},
+  },
+  straight_horizontal_window_disabled_visualization = {
+    filename = "__the-one-mod-with-underground-bits__/graphics/underground-disabled-visualization.png",
+    priority = "extra-high",
+    x = 10 * 64,
+    size = 64,
+    scale = 0.5,
+    flags = {"icon"},
+  },
+  straight_horizontal_disabled_visualization = {
+    filename = "__the-one-mod-with-underground-bits__/graphics/underground-disabled-visualization.png",
+    priority = "extra-high",
+    x = 10 * 64,
+    size = 64,
+    scale = 0.5,
+    flags = {"icon"},
+  },
+  corner_up_right_disabled_visualization = {
+    filename = "__the-one-mod-with-underground-bits__/graphics/underground-disabled-visualization.png",
+    priority = "extra-high",
+    x = 3 * 64,
+    size = 64,
+    scale = 0.5,
+    flags = {"icon"},
+  },
+  corner_up_left_disabled_visualization = {
+    filename = "__the-one-mod-with-underground-bits__/graphics/underground-disabled-visualization.png",
+    priority = "extra-high",
+    x = 9 * 64,
+    size = 64,
+    scale = 0.5,
+    flags = {"icon"},
+  },
+  corner_down_right_disabled_visualization = {
+    filename = "__the-one-mod-with-underground-bits__/graphics/underground-disabled-visualization.png",
+    priority = "extra-high",
+    x = 6 * 64,
+    size = 64,
+    scale = 0.5,
+    flags = {"icon"},
+  },
+  corner_down_left_disabled_visualization = {
+    filename = "__the-one-mod-with-underground-bits__/graphics/underground-disabled-visualization.png",
+    priority = "extra-high",
+    x = 12 * 64,
+    size = 64,
+    scale = 0.5,
+    flags = {"icon"},
+  },
+  t_up_disabled_visualization = {
+    filename = "__the-one-mod-with-underground-bits__/graphics/underground-disabled-visualization.png",
+    priority = "extra-high",
+    x = 11 * 64,
+    size = 64,
+    scale = 0.5,
+    flags = {"icon"},
+  },
+  t_down_disabled_visualization = {
+    filename = "__the-one-mod-with-underground-bits__/graphics/underground-disabled-visualization.png",
+    priority = "extra-high",
+    x = 14 * 64,
+    size = 64,
+    scale = 0.5,
+    flags = {"icon"},
+  },
+  t_right_disabled_visualization = {
+    filename = "__the-one-mod-with-underground-bits__/graphics/underground-disabled-visualization.png",
+    priority = "extra-high",
+    x = 7 * 64,
+    size = 64,
+    scale = 0.5,
+    flags = {"icon"},
+  },
+  t_left_disabled_visualization = {
+    filename = "__the-one-mod-with-underground-bits__/graphics/underground-disabled-visualization.png",
+    priority = "extra-high",
+    x = 13 * 64,
+    size = 64,
+    scale = 0.5,
+    flags = {"icon"},
+  },
+  cross_disabled_visualization = {
+    filename = "__the-one-mod-with-underground-bits__/graphics/underground-disabled-visualization.png",
+    priority = "extra-high",
+    x = 15 * 64,
+    size = 64,
+    scale = 0.5,
+    flags = {"icon"},
+  },
+  ending_up_disabled_visualization = {
+    filename = "__the-one-mod-with-underground-bits__/graphics/underground-disabled-visualization.png",
+    priority = "extra-high",
+    x = 1 * 64,
+    size = 64,
+    scale = 0.5,
+    flags = {"icon"},
+  },
+  ending_down_disabled_visualization = {
+    filename = "__the-one-mod-with-underground-bits__/graphics/underground-disabled-visualization.png",
+    priority = "extra-high",
+    x = 4 * 64,
+    size = 64,
+    scale = 0.5,
+    flags = {"icon"},
+  },
+  ending_right_disabled_visualization = {
+    filename = "__the-one-mod-with-underground-bits__/graphics/underground-disabled-visualization.png",
+    priority = "extra-high",
+    x = 2 * 64,
+    size = 64,
+    scale = 0.5,
+    flags = {"icon"},
+  },
+  ending_left_disabled_visualization = {
+    filename = "__the-one-mod-with-underground-bits__/graphics/underground-disabled-visualization.png",
+    priority = "extra-high",
+    x = 8 * 64,
+    size = 64,
+    scale = 0.5,
+    flags = {"icon"},
+  },
+}
 
----@param underground boolean?
----@return data.Sprite4Way
 tomwub.ptg_visualization = function(underground)
   return {
     north = {
@@ -109,16 +378,16 @@ tomwub.ptg_visualizations = {
 
 tomwub.base_visualisation = {
   north = {layers = {
-    tomwub.ptg_visualization().north
+    tomwub.ptg_visualization().north --[[@as data.Sprite]]
   }},
   east = {layers = {
-    tomwub.ptg_visualization().east
+    tomwub.ptg_visualization().east --[[@as data.Sprite]]
   }},
   south = {layers = {
-    tomwub.ptg_visualization().south
+    tomwub.ptg_visualization().south --[[@as data.Sprite]]
   }},
   west = {layers = {
-    tomwub.ptg_visualization().west
+    tomwub.ptg_visualization().west --[[@as data.Sprite]]
   }},
 }
 
@@ -132,7 +401,6 @@ tomwub.dirmap = {
 ---@diagnostic disable-next-line: unresolved-require
 local recycling = mods.recycling and require("__recycling__.prototypes.recycling") or nil
 
----@param id string
 tomwub.adjust_recipes = function(id)
   log("adjusting recipes for: " .. id)
   for _, recipe in pairs{
@@ -163,9 +431,6 @@ data:extend{{
 
 local underground_definitions = data.raw["mod-data"]["the-one-mod-with-underground-bits"].data.underground_definitions
 
----@param prototype data.PipeToGroundPrototype
----@param pipe data.PipeName
----@return data.CollisionMaskConnector, data.CollisionLayerName, string
 tomwub.adjust_ptg = function(prototype, pipe)
   log("adjusting pipe to ground: " .. prototype.name)
   prototype.solved_by_tomwub = true
@@ -220,10 +485,6 @@ end
 tomwub.default_layer = settings.startup["npt-tomwub-weaving"].value and "tomwub-pipe-underground" or "tomwub-underground"
 tomwub.default_category = not mods["no-pipe-touching"] and "tomwub-underground" or "tomwub-pipe-underground"
 
----@param pipe data.PipePrototype
----@param mask data.CollisionMaskConnector
----@param layer data.CollisionLayerID
----@param category string
 tomwub.make_tomwub_variant = function(pipe, mask, layer, category)
   log("making underground variant of: " .. pipe.name)
   -- create new item, entity, and collision layer

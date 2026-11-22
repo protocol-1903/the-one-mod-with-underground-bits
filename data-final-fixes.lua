@@ -40,14 +40,14 @@ end
 for u, underground in pairs(data.raw["pipe-to-ground"]) do
   if not underground.ignore_by_tomwub and not underground.solved_by_tomwub then
     local p = underground.associated_pipe
+    ---@cast p -?
     local pipe = data.raw.pipe[p]
     if pipe then
       local mask, layer, connection_category = tomwub.adjust_ptg(underground, p)
       underground.heating_energy = pipe.heating_energy
       local u_pipe = tomwub.make_tomwub_variant(pipe, mask, layer, connection_category)
-      tomwub.reformat(u_pipe.pictures)
-      u_pipe.fluid_box.pipe_covers = u_pipe.fluid_box.pipe_covers or table.deepcopy(pipecoverspictures())
-      tomwub.reformat(u_pipe.fluid_box.pipe_covers)
+      u_pipe.pictures = tomwub.pipe_visualizations
+      u_pipe.fluid_box.pipe_covers = nil
       tomwub.adjust_recipes(u)
 
       -- save the tag for later use with assembling machines
@@ -112,7 +112,7 @@ for u, underground in pairs(data.raw["pipe-to-ground"]) do
     for i, direction in pairs(directions) do
       for j = 0, 3 do
         -- increment new direction from offset vector and add to layers
-        underground.visualization[tomwub.dirmap[j]].layers[i] = tomwub.ptg_visualization(true)[tomwub.dirmap[(direction / 4 + j) % 4]]
+        underground.visualization[tomwub.dirmap[j]].layers[i] = tomwub.ptg_visualization(true)[tomwub.dirmap[((direction / 4 + j) % 4) --[[@as int]]]]
       end
     end
 
