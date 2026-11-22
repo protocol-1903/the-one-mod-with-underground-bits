@@ -313,7 +313,7 @@ script.on_event(defines.events.on_player_controller_changed, function (event)
 
   local item = player.cursor_ghost and player.cursor_ghost.name.name or
     player.cursor_stack and player.cursor_stack.valid_for_read and player.cursor_stack.name or nil
-  local quality = player.cursor_ghost and player.cursor_ghost.name or 
+  local quality = player.cursor_ghost and player.cursor_ghost.quality.name or 
     player.cursor_stack and player.cursor_stack.valid_for_read and player.cursor_stack.quality.name or nil
   local count = storage.tomwub[player.index].count
 
