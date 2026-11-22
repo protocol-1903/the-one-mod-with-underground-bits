@@ -355,11 +355,11 @@ local function on_selected(event)
     player.cursor_stack and player.cursor_stack.valid_for_read and player.cursor_stack.name or nil
   if (not item or item:sub(1,7) ~= "tomwub-") and prototype.name:sub(1,7) == "tomwub-" then
     local entities = player.surface.find_entities_filtered{position = entity.position, collision_mask = prototype.collision_mask.layers, invert = true}
-    for _, entity in pairs(entities) do
-      local name = entity.name == "entity-ghost" and entity.ghost_name or entity.name
-      local prototype = entity.name == "entity-ghost" and entity.ghost_prototype or entity.prototype
-      if name:sub(1,7) ~= "tomwub-" and not prototype.has_flag("not-selectable-in-game") then
-        player.selected = entity
+    for _, e in pairs(entities) do
+      local name = e.name == "entity-ghost" and e.ghost_name or e.name
+      local p = e.name == "entity-ghost" and e.ghost_prototype or e.prototype
+      if name:sub(1,7) ~= "tomwub-" and not p.has_flag("not-selectable-in-game") then
+        player.selected = e
         return
       end
     end
